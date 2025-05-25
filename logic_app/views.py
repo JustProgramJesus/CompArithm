@@ -1,4 +1,5 @@
 import itertools
+from lib2to3.fixer_util import in_special_context
 
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -10,7 +11,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse, FileResponse
 import os
 from datetime import datetime
-
 
 # generate_protocol_simplified
 @register.filter
@@ -194,37 +194,6 @@ def start_view(request):
 
     return render(request, "logic_app/start.html")
 
-def verification_view(request):
-    fio = request.GET.get("fio", "")
-    run_number = request.GET.get("run", "")
-    attempts_left = int(request.GET.get("attempts", 3))
-    max_level = request.GET.get("max_level", 0)
-
-    try:
-        elements = json.loads(request.GET.get("elements", "[]"))
-        level_labels = json.loads(request.GET.get("level_labels", "[]"))
-        table_data = json.loads(request.GET.get("table_data", "[]"))
-        enriched_table = json.loads(request.GET.get("enriched_table", "{}"))
-    except json.JSONDecodeError:
-        elements = []
-        level_labels = []
-        table_data = []
-        enriched_table = {}
-
-    return render(request, "logic_app/verification.html", {
-        "max_level": max_level,
-        "elements": elements,
-        "level_labels": level_labels,
-        "table_data": table_data,
-        "enriched_table": enriched_table,
-        "enriched_rows": enriched_table,
-    })
-
-
-
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
-
 def verify_view(request):
     if request.method == "POST":
         # Получаем данные из формы
@@ -294,78 +263,97 @@ def build_pattern(count):
 
 def get_report_content(request):
     if request.method == "GET":
-        # Получаем данные для отчета
         fio = request.GET.get('fio', 'Неизвестный пользователь')
         run_number = request.GET.get('run_number', '1')
         attempt_number = request.GET.get('attempt_number', '1')
-        user_answers = request.GET.get('user_answers', [])
-        correct_answers = request.GET.get('correct_answers', [])
-        comment = request.GET.get('comment', 'Нет комментария')
+        user_answers = json.loads(request.GET.get('user_answers', '[]'))
+        correct_answers = json.loads(request.GET.get('correct_answers', '[]'))
+        comment = request.GET.get('comment', '').strip()
+        date_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        is_correct = request.GET.get('is_correct', 'false') == 'true'
 
-        # Формируем текст отчета
-        report_text = f"""ОТЧЁТ О ПРОВЕРКЕ МОДЕЛИ
-    ==================================================
-    Дата: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-    Пользователь: {fio}
-    Прогон №: {run_number}
-    Попытка: {attempt_number}
-
-    РЕЗУЛЬТАТЫ:
-    - Ответ пользователя: {' '.join(user_answers)}
-    - Правильный ответ: {' '.join(correct_answers)}
-
-    КОММЕНТАРИЙ ПОЛЬЗОВАТЕЛЯ:
-    {comment if comment.strip() else 'Нет комментария'}
-    """
-        return JsonResponse(
-            {'content': report_text, 'filename': f'отчет_{fio}_прогон_{run_number}_попытка_{attempt_number}.txt'})
-
-
-def get_protocol_content(request):
-    if request.method == "GET":
-        # Получаем данные графа из сессии
-        graph_data = request.GET.get('graph_data', [])
-        fio = request.GET.get('fio', 'Неизвестный пользователь')
-        run_number = request.GET.get('run_number', '1')
-
-        # Формируем текст протокола
-        protocol_lines = [
-            "ПРОТОКОЛ МОДЕЛИ",
+        # Сборка строк отчета
+        lines = [
+            "ОТЧЁТ О ПРОВЕРКЕ МОДЕЛИ",
             "=" * 50,
-            f"Пользователь: {fio}",
-            f"Прогон №: {run_number}",
-            f"Дата: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-            ""
+            f"Дата: {date_str}   |   Пользователь: {fio}   |   Попытка: {attempt_number}",
+            "",
+            " " * 35 + "РЕЗУЛЬТАТЫ:",
+            "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
+            "|  Номер   |    Ответ пользователя:     |       Правильный ответ:     |"
         ]
 
-        for level_idx, level in enumerate(graph_data):
-            protocol_lines.append(f"УРОВЕНЬ {level_idx}")
-            protocol_lines.append("-" * 50)
+        for idx, (ua, ca) in enumerate(zip(user_answers, correct_answers), 1):
+            lines.append(f"|    {str(idx).ljust(4)}  |  {ua.center(25)} |   {ca.center(25)} |")
 
-            if level_idx == 0:
-                protocol_lines.append("Значение y | Основание k")
-                protocol_lines.append("-" * 25)
-                for node in level:
-                    protocol_lines.append(f"{node[1]} | {node[0]}")
-            else:
-                protocol_lines.append("Операция и аргументы | Результат (основание)")
-                protocol_lines.append("-" * 50)
+        lines += [
+            "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
+            "",
+            "КОММЕНТАРИЙ ПОЛЬЗОВАТЕЛЯ:",
+            comment if comment else "Нет комментария",
+            "",
+            "ИТОГ:",
+            "Ваш ответ:"
+            " ПРАВИЛЬНЫЙ ✅" if is_correct else "Ваш ответ:"
+                                               " НЕПРАВИЛЬНЫЙ ❌"
+        ]
 
-                for node in level:
-                    op_code = node[0]
-                    inputs = node[1:-3]
-                    base = node[-3]
-                    result = node[-2]
-                    op_name = OPERATIONS[op_code] if op_code < len(OPERATIONS) else f"Операция {op_code}"
+        content = "\n".join(lines)
+        filename = f"отчет_{fio}_прогон_{run_number}_попытка_{attempt_number}.txt"
 
-                    args = [f"{graph_data[level_idx - 1][i][1]}_{graph_data[level_idx - 1][i][0]}" for i in inputs]
-                    operation_str = f"{op_name} ({', '.join(args)})"
-                    result_str = f"{result}_{base}"
+        return JsonResponse({'content': content, 'filename': filename})
 
-                    protocol_lines.append(f"{operation_str} | {result_str}")
+@csrf_exempt
+def get_protocol_content(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            enriched_table = data.get("enriched_table", {})
+            fio = data.get("fio", "Неизвестный пользователь")
+            run_number = data.get("run_number", "1")
 
-            protocol_lines.append("=" * 50)
-            protocol_lines.append("")
+            # Определим последний уровень — исключим его
+            level_keys = sorted([int(k) for k in enriched_table.keys()])
+            max_level = max(level_keys)
 
-        protocol_text = "\n".join(protocol_lines)
-        return JsonResponse({'content': protocol_text, 'filename': f'протокол_{fio}_прогон_{run_number}.txt'})
+            lines = [
+                "ПРОТОКОЛ МОДЕЛИ",
+                "=" * 50
+            ]
+            WIDTH_LEVEL = 8
+            WIDTH_NODE = 12
+            WIDTH_RESULT = 20
+            WIDTH_OP = 25
+            for level_num in level_keys:
+                rows = enriched_table[str(level_num)]
+                lines.append(f"УРОВЕНЬ {level_num}:")
+
+                if level_num == 0:
+                    lines.append(
+                        f"| {'Уровень'.ljust(WIDTH_LEVEL)} | {'Индекс узла'.ljust(WIDTH_NODE)} | {'Результат'.ljust(WIDTH_RESULT)} |")
+                    for row in rows:
+                        lines.append(
+                            f"| {str(row['level']).ljust(WIDTH_LEVEL)} | {str(row['node']).ljust(WIDTH_NODE)} | {str(row['reference_result']).ljust(WIDTH_RESULT)} |"
+                        )
+                else:
+                    lines.append(
+                        f"| {'Уровень'.ljust(WIDTH_LEVEL)} | {'Индекс узла'.ljust(WIDTH_NODE)} | {'Операция'.ljust(WIDTH_OP)} | {'Результат (эталон)'.ljust(WIDTH_RESULT)} |")
+                    for row in rows:
+                        operation = row.get("operation_expr", "").replace("\n", " ")[:WIDTH_OP]
+                        lines.append(
+                            f"| {str(row['level']).ljust(WIDTH_LEVEL)} | {str(row['node']).ljust(WIDTH_NODE)} | {operation.ljust(WIDTH_OP)} | {str(row['reference_result']).ljust(WIDTH_RESULT)} |"
+                        )
+
+                lines.append("")
+
+            lines.append("=" * 50)
+            lines.append(f"Дата: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            lines.append(f"Пользователь: {fio}")
+            lines.append(f"Прогон №: {run_number}")
+
+            content = "\n".join(lines)
+            filename = f"протокол_{fio}_прогон_{run_number}.txt"
+            return JsonResponse({'content': content, 'filename': filename})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)

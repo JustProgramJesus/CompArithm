@@ -34,39 +34,43 @@ def int_to_base(n, base):
         n //= base
     return res
 
-
 def apply_operation(op_code, inputs_bin):
     length = len(inputs_bin[0])
     result = []
+
     for i in range(length):
-        try:
-            bits = [int(x[i]) for x in inputs_bin]
-        except IndexError:
-            return '0' * length
+        bits = [int(x[i]) for x in inputs_bin]
 
-        a = bits[0]
-        b = bits[1] if len(bits) > 1 else a  # <--- вот ключ: если второго нет, используем a
+        # Унарные операции
+        if OPERATIONS[op_code] in ["NOT_X", "X", "Y", "NOT_Y"]:
+            a = bits[0]
+            b = bits[1] if len(bits) > 1 else a  # нужно для "Y" и "NOT_Y"
 
-        match OPERATIONS[op_code]:
-            case "AND": res = int(a and b)
-            case "OR": res = int(a or b)
-            case "XOR": res = int((a and not b) or (not a and b))
-            case "EQUIV": res = int(a == b)
-            case "IMPLIES": res = int((not a) or b)
-            case "NAND": res = int(not (a and b))
-            case "NOR": res = int(not (a or b))
-            case "NOT_IMPLIES": res = int(not ((not a) or b))
-            case "NOT_X": res = int(not a)
-            case "X": res = a
-            case "Y": res = b
-            case "LEFT": res = int((not b) or a)
-            case "NOT_LEFT": res = int(not ((not b) or a))
-            case "NOT_Y": res = int(not b)
-            case _: res = 0
-        result.append(str(res))
+            match OPERATIONS[op_code]:
+                case "NOT_X": current = int(not a)
+                case "X": current = a
+                case "Y": current = b
+                case "NOT_Y": current = int(not b)
+        else:
+            current = bits[0]
+            for b in bits[1:]:
+                a = current
+                match OPERATIONS[op_code]:
+                    case "AND": current = int(a and b)
+                    case "OR": current = int(a or b)
+                    case "XOR": current = int((a and not b) or (not a and b))
+                    case "EQUIV": current = int(a == b)
+                    case "IMPLIES": current = int((not a) or b)
+                    case "NAND": current = int(not (a and b))
+                    case "NOR": current = int(not (a or b))
+                    case "NOT_IMPLIES": current = int(not ((not a) or b))
+                    case "LEFT": current = int((not b) or a)
+                    case "NOTLEFT": current = int(not ((not b) or a))
+                    case _ : current = 0  # fallback
+
+        result.append(str(current))
+
     return ''.join(result)
-
-
 
 def generate_quasi_uniform_bases(count, min_base=2, max_base=10):
     bases = list(range(min_base, max_base + 1))
@@ -162,11 +166,10 @@ def enrich_table_data_with_operations(table_data):
                 "reference_result": f'{row["result"]}_{row["base"]}'
             })
         else:
-            # Для остальных уровней формируем полную строку
-            input_indices = row["inputs"] if isinstance(row["inputs"], list) else [int(i) for i in
-                                                                                   str(row["inputs"]).replace(",",
-                                                                                                              " ").split()
-                                                                                   if i.strip().isdigit()]
+            # Формируем выражение для остальных уровней
+            input_indices = row["inputs"] if isinstance(row["inputs"], list) else [
+                int(i) for i in str(row["inputs"]).replace(",", " ").split() if i.strip().isdigit()
+            ]
 
             args = []
             for idx in input_indices:
@@ -175,8 +178,14 @@ def enrich_table_data_with_operations(table_data):
                     args.append(f'{prev["result"]}_{prev["base"]}')
 
             op_symbol = OP_SYMBOLS.get(row["operation"], row["operation"])
-            operation_expr = f" {op_symbol} ".join(args)
             final_result = f'{row["result"]}_{row["base"]}'
+
+            # Логика отображения выражения
+            if len(args) == 1:
+                # Если один аргумент – дублируем для визуального выражения
+                operation_expr = f"{args[0]} {op_symbol} {args[0]}"
+            else:
+                operation_expr = f" {op_symbol} ".join(args)
 
             enriched_by_level[level].append({
                 "level": level,

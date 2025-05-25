@@ -16,8 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from logic_app.views import graph_view,start_view,save_attempt_log, download_protocol,verify_view,get_protocol_content,get_report_content, verification_view
-
+from logic_app.views import graph_view,start_view,save_attempt_log, download_protocol,verify_view,get_protocol_content,get_report_content
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('graph/', graph_view, name='graph'),
@@ -25,7 +24,6 @@ urlpatterns = [
     path("save-log/", save_attempt_log, name="save_attempt_log"),
     path("download-protocol/", download_protocol, name="download_protocol"),
     path("verify/", verify_view, name="verify"),
-    path("verification/", verification_view, name="verification"),
     path('get-report-content/', get_report_content, name='get_report_content'),
     path('get-protocol-content/', get_protocol_content, name='get_protocol_content'),
 ]

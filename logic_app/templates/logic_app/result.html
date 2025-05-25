@@ -229,6 +229,20 @@
             color: var(--dark);
         }
 
+        .fixed-width {
+            width: 200px; /* Укажите желаемую ширину */
+            text-align: center; /* Центрирование текста */
+        }
+
+        .change-color {
+            background-color: #7733ab; /* Цвет фона */
+        }
+        .change-color:hover {
+            background-color: #5f278a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
         @media (max-width: 768px) {
             .content {
                 padding: 20px;
@@ -286,6 +300,9 @@
                 </div>
             </div>
 
+            # Сюда добавить систему отображения оценки.
+
+
             {% if run_number|add:'0' < 3 %}
             <form method="post" action="{% url 'start' %}">
                 {% csrf_token %}
@@ -296,9 +313,10 @@
         {% else %}
             <a href="{% url 'start' %}" class="btn btn-block">Вернуться на стартовую</a>
         {% endif %}
-        <a href="#" class="btn download-btn" onclick="downloadReport()" style="display: none;">Скачать отчет</a>
-        <a href="#" class="btn download-btn" onclick="downloadProtocol()" style="display: none;">Скачать протокол</a>
-
+            <div style="display: flex; justify-content: center; margin-top: 20px; gap: 10px; gap: 30px">
+        <div><a href="#" class="btn fixed-width change-color" onclick="downloadReport()">Скачать отчет</a></div>
+        <div><a href="#" class="btn fixed-width change-color" onclick="downloadProtocol()">Скачать протокол</a></div>
+            </div>
             {% for level, rows in enriched_table.items %}
                 <h2 class="section-title collapsed" onclick="toggleTable(this)">Уровень {{ level }}</h2>
                 <table>
@@ -359,6 +377,77 @@
                 table.style.display = 'none';
                 titleElement.classList.add('collapsed');
             }
+        }
+
+        function downloadReport() {
+            const fio = "{{ fio|escapejs }}";
+            const runNumber = "{{ run_number|escapejs }}";
+            const attemptNumber = String(3 - Number("{{ attempts_left|escapejs }}"));
+            const userAnswers = "{{ request.POST.answers|default:''|escapejs }}".split(" ");
+            const correctAnswers = "{{ correct_answers|escapejs }}".split(" ");
+            const comment = "{{ comment_user|default:'Нет комментария'|escapejs }}";
+            const isCorrect = "{{ is_correct|yesno:'true,false' }}";
+            const queryParams = new URLSearchParams({
+                fio: fio,
+                run_number: runNumber,
+                attempt_number: attemptNumber,
+                user_answers: JSON.stringify(userAnswers),
+                correct_answers: JSON.stringify(correctAnswers),
+                comment: comment,
+                is_correct: isCorrect
+            });
+
+            fetch("{% url 'get_report_content' %}?" + queryParams.toString())
+                .then(response => response.json())
+                .then(data => {
+                    const blob = new Blob([data.content], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = data.filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                })
+                .catch(error => console.error('Ошибка при загрузке отчета:', error));
+        }
+
+        function downloadProtocol() {
+            const fio = "{{ fio|escapejs }}";
+            const runNumber = "{{ run_number|escapejs }}";
+            const enrichedTable = {{ enriched_table|safe }};
+
+            const queryParams = new URLSearchParams({
+                fio: fio,
+                run_number: runNumber
+            });
+
+            fetch("{% url 'get_protocol_content' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    enriched_table: enrichedTable,
+                    fio: fio,
+                    run_number: runNumber
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const blob = new Blob([data.content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = data.filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            })
+            .catch(error => console.error('Ошибка при загрузке протокола:', error));
         }
     </script>
 </body>

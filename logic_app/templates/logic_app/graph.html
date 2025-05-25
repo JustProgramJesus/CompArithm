@@ -357,18 +357,6 @@
                             Осталось попыток: <span class="{% if attempts_left == 1 %}attempts-warning{% endif %}">{{ attempts_left }}</span>
                         </div>
                     </form>
-
-                    <div class="download-buttons">
-                        <form method="post" action="{% url 'verification' %}" style="display: inline;">
-                            {% csrf_token %}
-                            <input type="hidden" name="fio" value="{{ fio }}">
-                            <input type="hidden" name="elements" value='{{ elements|escapejs }}'>
-                            <input type="hidden" name="level_labels" value='{{ level_labels|escapejs }}'>
-                            <input type="hidden" name="table_data" value="{{ table_data|safe }}">
-                            <input type="hidden" name="enriched_table" value='{{ enriched_table|escapejs }}'>
-                            <input type="hidden" name="max_level" value="{{ max_level }}">
-                        </form>
-                    </div>
                 </div>
             </div>
         </div>
