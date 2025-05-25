@@ -145,41 +145,46 @@ from collections import defaultdict
 
 def enrich_table_data_with_operations(table_data):
     enriched_by_level = defaultdict(list)
+    levels = defaultdict(list)
 
     # Собираем данные по уровням
-    levels = defaultdict(list)
     for row in table_data:
         levels[row["level"]].append(row)
 
     for row in table_data:
         level = row["level"]
+
         if level == 0:
-            continue  # Пропускаем первый уровень
-
-        # Парсим входы
-        inputs = row["inputs"]
-        if isinstance(inputs, str):
-            input_indices = [int(i) for i in inputs.replace(",", " ").split() if i.strip().isdigit()]
+            # Для уровня 0 выводим только базовую информацию
+            enriched_by_level[level].append({
+                "level": level,
+                "node": row["node"],
+                "reference_result": f'{row["result"]}_{row["base"]}'
+            })
         else:
-            input_indices = inputs
+            # Для остальных уровней формируем полную строку
+            input_indices = row["inputs"] if isinstance(row["inputs"], list) else [int(i) for i in
+                                                                                   str(row["inputs"]).replace(",",
+                                                                                                              " ").split()
+                                                                                   if i.strip().isdigit()]
 
-        args = []
-        for idx in input_indices:
-            prev = next((r for r in levels[level - 1] if r["node"] == idx), None)
-            if prev:
-                args.append(f'{prev["result"]}_{prev["base"]}')
+            args = []
+            for idx in input_indices:
+                prev = next((r for r in levels[level - 1] if r["node"] == idx), None)
+                if prev:
+                    args.append(f'{prev["result"]}_{prev["base"]}')
 
-        op_symbol = OP_SYMBOLS.get(row["operation"], row["operation"])
-        operation_expr = f" {op_symbol} ".join(args)
-        final_result = f'{row["result"]}_{row["base"]}'
+            op_symbol = OP_SYMBOLS.get(row["operation"], row["operation"])
+            operation_expr = f" {op_symbol} ".join(args)
+            final_result = f'{row["result"]}_{row["base"]}'
 
-        enriched_by_level[level].append({
-            "level": level,
-            "node": row["node"],
-            "operation_expr": operation_expr,
-            "reference_result": final_result,
-            "verifier_result": final_result  # Пока одинаково, можно заменить позже
-        })
+            enriched_by_level[level].append({
+                "level": level,
+                "node": row["node"],
+                "operation_expr": operation_expr,
+                "reference_result": final_result,
+                "verifier_result": final_result
+            })
 
     return dict(enriched_by_level)
 

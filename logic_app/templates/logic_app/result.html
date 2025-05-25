@@ -9,6 +9,7 @@
             padding: 20px;
             background: #f8f9fa;
         }
+
         .container {
             max-width: 600px;
             margin: auto;
@@ -58,6 +59,11 @@
             background-color: #0056b3;
         }
 
+        .level-0-table {
+            width: 40vw;
+            margin: auto;
+        }
+
     </style>
 </head>
 <body>
@@ -80,16 +86,9 @@
     </div>
 </body>
 <h2>Верификация узлов модели</h2>
-<h3>Входные данные (уровень 0):</h3>
-<p>
-  {% for row in table_data %}
-    {% if row.level == 0 %}
-      {{ row.result }}_{{ row.base }}{% if not forloop.last %}, {% endif %}
-    {% endif %}
-  {% endfor %}
-</p>
 {% for level, rows in enriched_table.items %}
   <h3>Уровень {{ level }}</h3>
+  {% if level != 0 %}
   <table>
       <thead>
           <tr>
@@ -112,5 +111,25 @@
           {% endfor %}
       </tbody>
   </table>
+  {% else %}
+  <table class="level-0-table">
+      <thead>
+          <tr>
+              <th>Уровень</th>
+              <th>Индекс узла</th>
+              <th>Результат</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for row in rows %}
+          <tr>
+              <td>{{ row.level }}</td>
+              <td>{{ row.node }}</td>
+              <td>{{ row.reference_result }}</td>
+          </tr>
+          {% endfor %}
+      </tbody>
+  </table>
+  {% endif %}
 {% endfor %}
 </html>

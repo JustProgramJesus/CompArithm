@@ -90,13 +90,12 @@ def graph_view(request):
 def start_view(request):
     if request.method == "POST":
         fio = request.POST.get("fio", "").strip()
-        run_number = request.POST.get("run_number", "").strip()
-
+        run_number = int(request.POST.get("run_number", "1").strip())
+        if run_number > 3:
+            return render(request, "logic_app/final.html", {"fio": fio})
         errors = {}
         if not fio.replace(" ", "").isalpha():
             errors["fio"] = "ФИО должно содержать только буквы и пробелы"
-        if not run_number.isdigit() or int(run_number) < 1:
-            errors["run_number"] = "Номер прогона должен быть положительным числом"
 
         if errors:
             return render(request, "logic_app/start.html", {"errors": errors})
@@ -175,9 +174,9 @@ def start_view(request):
             "elements": json.dumps(elements),
             "level_labels": json.dumps(level_labels),
             "table_data": json.dumps(table_data),
-            "enriched_table": json.dumps(enriched_table),  # ← вот это добавлено
+            "enriched_table": json.dumps(enriched_table),
             "max_level": len(levels) - 1,
-            "attempts": 3
+            "attempts": 3 - run_number
         }
 
         # Кодируем параметры и перенаправляем
