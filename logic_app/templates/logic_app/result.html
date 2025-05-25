@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результат проверки</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #333;
+        }
+        .result {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: red;
+            font-weight: bold;
+        }
+        .button {
+            display: block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Результат проверки</h2>
+        <p><strong>ФИО:</strong> {{ fio }}</p>
+        <p><strong>Номер прогона:</strong> {{ run_number }}</p>
+        <p><strong>Оставшиеся попытки:</strong> {{ attempts_left }}</p>
+        <p><strong>Комментарий:</strong> {{ comment }}</p>
+
+        <div class="result {% if is_correct %}correct{% else %}incorrect{% endif %}">
+            {% if is_correct %}
+                ✅ Ваш ответ правильный!
+            {% else %}
+                ❌ Ваш ответ неверный. Правильный ответ: {{ correct_answers }}
+            {% endif %}
+        </div>
+
+        <a href="{% url 'graph' %}" class="button">Вернуться к графу</a>
+    </div>
+</body>
+</html>

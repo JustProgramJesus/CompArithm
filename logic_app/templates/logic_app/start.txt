@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Старт - Логические операции</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .app-title {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            width: 350px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .app-title h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .app-title p {
+            margin: 10px 0 0;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .start-container {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            width: 350px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .error {
+            color: red;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-title">
+    <h3>Приложение для тестирования знаний по логическим операциям над битовыми данными</h3>
+</div>
+
+<div class="start-container">
+    <h2>Начать тестирование</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label for="fio">ФИО:</label>
+        <input type="text" name="fio" id="fio" required pattern="^[А-Яа-яA-Za-zЁё\s\-]+$">
+        {% if errors.fio %}<div class="error">{{ errors.fio }}</div>{% endif %}
+
+        <label for="run_number">Номер прогона:</label>
+        <input type="number" name="run_number" id="run_number" required min="1">
+        {% if errors.run_number %}<div class="error">{{ errors.run_number }}</div>{% endif %}
+
+        <button type="submit">Начать</button>
+    </form>
+</div>
+</body>
+</html>
