@@ -17,6 +17,18 @@
             padding: 30px;
             box-shadow: 0 0 12px rgba(0,0,0,0.1);
         }
+        table {
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
         h2 {
             color: #333;
         }
@@ -45,6 +57,7 @@
         .button:hover {
             background-color: #0056b3;
         }
+
     </style>
 </head>
 <body>
@@ -66,4 +79,38 @@
         <a href="{% url 'graph' %}" class="button">Вернуться к графу</a>
     </div>
 </body>
+<h2>Верификация узлов модели</h2>
+<h3>Входные данные (уровень 0):</h3>
+<p>
+  {% for row in table_data %}
+    {% if row.level == 0 %}
+      {{ row.result }}_{{ row.base }}{% if not forloop.last %}, {% endif %}
+    {% endif %}
+  {% endfor %}
+</p>
+{% for level, rows in enriched_table.items %}
+  <h3>Уровень {{ level }}</h3>
+  <table>
+      <thead>
+          <tr>
+              <th>Уровень</th>
+              <th>Индекс узла</th>
+              <th>Операция</th>
+              <th>Результат эталонной модели</th>
+              <th>Результат верификатора</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for row in rows %}
+          <tr>
+              <td>{{ row.level }}</td>
+              <td>{{ row.node }}</td>
+              <td>{{ row.operation_expr }}</td>
+              <td>{{ row.reference_result }}</td>
+              <td>{{ row.verifier_result }}</td>
+          </tr>
+          {% endfor %}
+      </tbody>
+  </table>
+{% endfor %}
 </html>

@@ -167,42 +167,6 @@
     </style>
 </head>
 <body>
-<h2>Верификация узлов модели</h2>
-<h3>Входные данные (уровень 0):</h3>
-<p>
-  {% for row in table_data %}
-    {% if row.level == 0 %}
-      {{ row.result }}_{{ row.base }}{% if not forloop.last %}, {% endif %}
-    {% endif %}
-  {% endfor %}
-</p>
-{% for level, rows in enriched_table.items %}
-  <h3>Уровень {{ level }}</h3>
-  <table>
-      <thead>
-          <tr>
-              <th>Уровень</th>
-              <th>Индекс узла</th>
-              <th>Операция</th>
-              <th>Результат эталонной модели</th>
-              <th>Результат верификатора</th>
-          </tr>
-      </thead>
-      <tbody>
-          {% for row in rows %}
-          <tr>
-              <td>{{ row.level }}</td>
-              <td>{{ row.node }}</td>
-              <td>{{ row.operation_expr }}</td>
-              <td>{{ row.reference_result }}</td>
-              <td>{{ row.verifier_result }}</td>
-          </tr>
-          {% endfor %}
-      </tbody>
-  </table>
-{% endfor %}
-
-
 
  <div style="margin: 10px; font-size: 18px; display:flex; flex-direction:row;justify-content: center;  gap: 40px;
     align-items: flex-start; ">
@@ -401,6 +365,7 @@ n уровень:Выходной уровень модели, на которо
     <input type="hidden" name="attempts_left" value="{{ attempts_left }}">
     <input type="hidden" name="table_data" value="{{ table_data|safe }}">
     <input type="hidden" name="max_level" value="{{ max_level }}">
+    <input type="hidden" name="enriched_table" value='{{ enriched_table }}'>
 
     <label for="answers">Введите ответы:</label>
     <input
@@ -410,7 +375,7 @@ n уровень:Выходной уровень модели, на которо
   required
   pattern="{{ pattern }}"
   title="Введите {{ max_level_nodes }} значений в формате число_основание через пробел"
-  placeholder="например: 1_2 3_10{% if max_level_nodes > 2 %} ...{% endif %}"
+  placeholder="Например: 1_2 3_10{% if max_level_nodes > 2 %} ...{% endif %}"
 >
     <button type="submit">Проверить</button>
 </form>

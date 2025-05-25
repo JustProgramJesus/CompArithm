@@ -68,6 +68,7 @@ def graph_view(request):
         level_labels = []
         table_data = []
     enriched_table = enrich_table_data_with_operations(table_data)
+    print("Enriched Table:", enriched_table)
     max_level = int(request.GET.get("max_level", 0))
     max_level_nodes = sum(1 for row in table_data if row["level"] == max_level)
     pattern = build_pattern(max_level_nodes)
@@ -219,45 +220,62 @@ from django.http import JsonResponse
 
 def verify_view(request):
     if request.method == "POST":
-        # Получаем ответы пользователя
-        user_answers = request.POST.get("answers", "").strip().split(";")
+        # Получаем данные из формы
+        fio = request.POST.get("fio", "").strip()
+        run_number = request.POST.get("run_number", "").strip()
+        attempts_left = int(request.POST.get("attempts_left", 2))
+        user_answers = request.POST.get("answers", "").replace(";", "").strip()
+        # Получаем enriched_table (уже предполагалось строкой)
+        enriched_table = request.POST.get("enriched_table", "")
 
-        # Получаем таблицу с данными и максимальный уровень
-        enriched_table = json.loads(request.POST.get("enriched_table", "{}"))
+        # Проверяем enriched_table
+        if isinstance(enriched_table, str):
+            try:
+                # Можно организовать десериализацию через eval, но только если строго доверяем данным
+                # Рекомендуется строго проверять формат перед этим!!!
+                enriched_table = eval(enriched_table)  # Преобразование в Python объект
+            except Exception as e:
+                enriched_table = {}
+
+        # Извлечение verifier_results уровнем
+        verifier_results = []
         max_level = int(request.POST.get("max_level", 0))
-        print("POST Enriched Table:", request.POST.get("enriched_table"))
-        # Проверяем, что enriched_table содержит данные
-        if not enriched_table or str(max_level) not in enriched_table:
-            return render(request, "logic_app/result.html", {
-                "fio": request.POST.get("fio", ""),
-                "run_number": request.POST.get("run_number", ""),
-                "attempts_left": int(request.POST.get("attempts_left", 3)) - 1,
-                "is_correct": False,
-                "comment": "Ошибка: данные для проверки отсутствуют.",
-                "correct_answers": "Нет данных"
-            })
+        if isinstance(enriched_table, dict):
+            verifier_results = [
+                row.get("verifier_result", "").replace(";", "")
+                for row in enriched_table.get(max_level, [])
+            ]
 
-        # Извлекаем правильные ответы с последнего уровня
-        correct_answers = [
-            row["verifier_result"]
-            for row in enriched_table.get(str(max_level), [])
-        ]
+        # Преобразуем правильный ответ в строку, чтобы совпадать с форматом пользовательского ввода
+        correct_answer_string = " ".join(verifier_results)
 
-        # Проверяем совпадение ответов
-        is_correct = user_answers == correct_answers
-        attempts_left = int(request.POST.get("attempts_left", 3)) - 1
+        # Сравниваем ответы пользователя с эталонными
+        is_correct = user_answers == correct_answer_string
 
-        # Формируем ответ для отображения результата
+        table_data = []
+        if isinstance(enriched_table, dict):
+            for level, rows in enriched_table.items():
+                for row in rows:
+                    table_data.append({
+                        "level": level,
+                        "node": row.get("node", ""),
+                        "operation_expr": row.get("operation_expr", ""),
+                        "reference_result": row.get("reference_result", ""),
+                        "verifier_result": row.get("verifier_result", "")
+                    })
+
+        # Отправляем результат
         return render(request, "logic_app/result.html", {
-            "fio": request.POST.get("fio", ""),
-            "run_number": request.POST.get("run_number", ""),
+            "fio": fio,
+            "run_number": run_number,
             "attempts_left": attempts_left,
             "is_correct": is_correct,
             "comment": "Ответы совпадают!" if is_correct else "Ответы не совпадают.",
-            "correct_answers": "; ".join(correct_answers) if correct_answers else "Нет данных",
+            "correct_answers": correct_answer_string,  # Отображаем корректный ответ как строку
+            "enriched_table": enriched_table,  # Передаём enriched_table в шаблон
+            "table_data": table_data  # Передаём таблицу данных для рендеринга
         })
-    else:
-        return JsonResponse({"error": "Метод запроса должен быть POST"})
+
 
 def build_pattern(count):
     unit = r"\d+_\d+"
