@@ -235,6 +235,7 @@ def verify_view(request):
         # Получаем enriched_table (уже предполагалось строкой)
         enriched_table = request.POST.get("enriched_table", "")
         run_number_save = request.POST.get("run", "")
+        comment_user = request.POST.get("comment", "")
         # Проверяем enriched_table
         if isinstance(enriched_table, str):
             try:
@@ -279,6 +280,7 @@ def verify_view(request):
             "attempts_left": attempts_left,
             "is_correct": is_correct,
             "comment": "Ответы совпадают!" if is_correct else "Ответы не совпадают.",
+            "comment_user": comment_user,
             "correct_answers": correct_answer_string,  # Отображаем корректный ответ как строку
             "enriched_table": enriched_table,  # Передаём enriched_table в шаблон
             "table_data": table_data  # Передаём таблицу данных для рендеринга
