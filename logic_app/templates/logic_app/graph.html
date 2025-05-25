@@ -171,7 +171,7 @@
  <div style="margin: 10px; font-size: 18px; display:flex; flex-direction:row;justify-content: center;  gap: 40px;
     align-items: flex-start; ">
     <h3 style = "text-align:center;">Пользователь: {{ fio }}</h3>
-<h3 style = "text-align:center;">Прогон № {{ run_number }}</h3>
+<h3 style = "text-align:center;">Прогон № {{ run }}</h3>
 
 </div>
 <div class="tooltip-content" style="">
@@ -367,7 +367,7 @@ n уровень:Выходной уровень модели, на которо
     <input type="hidden" name="max_level" value="{{ max_level }}">
     <input type="hidden" name="enriched_table" value='{{ enriched_table }}'>
 
-    <label for="answers">Введите ответы:</label>
+    <div><label for="answers">Введите ответы:</label>
     <input
   type="text"
   name="answers"
@@ -376,8 +376,16 @@ n уровень:Выходной уровень модели, на которо
   pattern="{{ pattern }}"
   title="Введите {{ max_level_nodes }} значений в формате число_основание через пробел"
   placeholder="Например: 1_2 3_10{% if max_level_nodes > 2 %} ...{% endif %}"
->
+></div>
+    <div><label for="comment">Введите ответы:</label>
+        <input
+            type="text"
+            id="comment"
+            name="comment"
+            placeholder="Введите комментарий"
+            >
     <button type="submit">Проверить</button>
+    </div>
 </form>
 </div>
 

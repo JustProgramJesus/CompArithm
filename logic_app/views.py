@@ -53,7 +53,8 @@ def download_protocol(request):
 def graph_view(request):
     # Получаем данные из GET-параметров
     fio = request.GET.get("fio", "")
-    run_number = request.GET.get("run", "")
+    run_number_save = request.GET.get("run", "")
+    run_number = request.GET.get("run_number", "")
     attempts_left = int(request.GET.get("attempts", 3))
     # Десериализуем данные из JSON строк
     elements_json = request.GET.get("elements", "[]")
@@ -77,6 +78,7 @@ def graph_view(request):
         "level_labels": level_labels,
         "table_data": json.dumps(table_data),
         "fio": fio,
+        "run": run_number_save,
         "run_number": run_number,
         "max_level": max_level,
         "attempts_left": attempts_left,
@@ -90,9 +92,13 @@ def graph_view(request):
 def start_view(request):
     if request.method == "POST":
         fio = request.POST.get("fio", "").strip()
-        run_number = int(request.POST.get("run_number", "1").strip())
-        if run_number > 3:
-            return render(request, "logic_app/final.html", {"fio": fio})
+        run_number = int(request.POST.get("run_number").strip())
+        if run_number >= 3:
+            run_number_save = run_number
+            run_number = 3
+
+        else:
+            run_number_save = run_number
         errors = {}
         if not fio.replace(" ", "").isalpha():
             errors["fio"] = "ФИО должно содержать только буквы и пробелы"
@@ -170,7 +176,8 @@ def start_view(request):
         # Подготавливаем параметры для передачи
         params = {
             "fio": fio,
-            "run": run_number,
+            "run": run_number_save,
+            "run_number": run_number,
             "elements": json.dumps(elements),
             "level_labels": json.dumps(level_labels),
             "table_data": json.dumps(table_data),
@@ -184,7 +191,6 @@ def start_view(request):
         return redirect(f"{reverse('graph')}?{encoded_params}")
 
     return render(request, "logic_app/start.html")
-
 
 def verification_view(request):
     fio = request.GET.get("fio", "")
@@ -226,7 +232,7 @@ def verify_view(request):
         user_answers = request.POST.get("answers", "").replace(";", "").strip()
         # Получаем enriched_table (уже предполагалось строкой)
         enriched_table = request.POST.get("enriched_table", "")
-
+        run_number_save = request.POST.get("run", "")
         # Проверяем enriched_table
         if isinstance(enriched_table, str):
             try:
@@ -266,6 +272,7 @@ def verify_view(request):
         # Отправляем результат
         return render(request, "logic_app/result.html", {
             "fio": fio,
+            "run": run_number_save,
             "run_number": run_number,
             "attempts_left": attempts_left,
             "is_correct": is_correct,
