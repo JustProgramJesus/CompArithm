@@ -1,500 +1,538 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns="http://www.w3.org/1999/html">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <title>Логический граф</title>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Логический граф операций</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.24.0/cytoscape.min.js"></script>
     <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --success: #4cc9f0;
+            --error: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: sans-serif;
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: #f5f7ff;
             padding: 20px;
         }
-        .instruction-container {
-    background-color: #f9f9f9;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-}
-#content-container {
-    display: flex;  /* Включает flexbox */
-    flex-direction: row;  /* Выстраивает элементы в строку */
-    align-items: flex-start;  /* Выравнивает элементы по верхнему краю */
-    gap: 20px;  /* Добавляет отступ между блоками */
-}
 
-        table {
-            border-collapse: collapse;
-            margin-bottom: 30px;
-            width: 100%;
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
         }
 
-        th,
-        td {
-            border: 1px solid #ccc;
-            padding: 8px;
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
             text-align: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 500;
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 15px;
+            background: rgba(67, 97, 238, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .info-value {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .instruction-panel {
+            flex: 1 1 300px;
+            background: var(--light);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .graph-container {
+            flex: 3 1 700px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: var(--primary);
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .section-title:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 5px;
+            height: 20px;
+            width: 4px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .instruction-content {
+            background: white;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+        }
+
+        .instruction-item {
+            margin-bottom: 15px;
+        }
+
+        .instruction-item h3 {
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 16px;
         }
 
         #cy-container {
-            width: 70%;
+            width: 100%;
             height: 600px;
-            overflow: auto;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+            border: 1px solid #e0e0e0;
             position: relative;
-            margin: auto;
-            border: 1px solid #ddd;
-            margin-top: 30px;
         }
 
         #cy {
-            width: 99%;
-            height: 99%;
-            position: relative;
+            width: 100%;
+            height: 100%;
+            background: white;
         }
-        .content-container{
-            display: flex;  /* Включает flexbox */
-    flex-direction: row;  /* Выстраивает элементы в строку */
-    justify-content: space-between;  /* Распределяет пространство между элементами */
-    align-items: flex-start;  /* Выравнивает элементы по верхнему краю */
-    gap: 20px;  /* Добавляет отступ между блоками */
-        }
+
         .level-label {
-            position: absolute;
-            left: -10px;
-            font-size: 24px;
-            color: #b00;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-        }
-        .instruction-container{
-        max-width: 27%}
-        .node-label {
-            position: absolute;
-            width: 150px;
-            text-align: center;
-            font-size: 20px;
-            line-height: 1.2em;
-            pointer-events: none;
+            margin-top: 45px;
         }
 
-        .graphVisual {
-            text-align: center;
+        .form-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: var(--light);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
         }
-        /* Добавьте в секцию style вашего HTML */
-#cy .cy-title {
-    font-size: 28px;
-    font-weight: bold;
-}
 
-#cy .cy-inputs {
-    font-size: 16px;
-    color: #666;
-}
+        .form-group {
+            margin-bottom: 15px;
+        }
 
-#cy .cy-result {
-    font-size: 32px;
-}
-        .attempts-counter {
-            margin-top: 10px;
-            font-weight: bold;
-            color: #dc3545;
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
         }
-        .vished{
-            margin:auto;
-        }
-        .mainc{
-        align-content:space-between;
-        display: flex;  /* Включает flexbox */
-    flex-direction: row;  /* Выстраивает элементы в строку */
-    gap: 20px;  /* Добавляет отступ между блоками */
-        }
-        .results-container {
-            margin-top: 20px;
-            padding: 15px;
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
             border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: border 0.3s;
         }
 
-        .result-row {
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+
+        .download-buttons {
             display: flex;
-            margin-bottom: 5px;
-        }
-
-        .result-label {
-            font-weight: bold;
-            min-width: 150px;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
         }
 
         .download-btn {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
+            background: #28a745;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+        }
+
+        .verification-btn {
+            background: #17a2b8;
+        }
+
+        .verification-btn:hover {
+            background: #138496;
+        }
+
+        .attempts-counter {
             margin-top: 10px;
-            display: none;
+            font-size: 14px;
+            color: var(--gray);
         }
 
-        .download-btn:disabled {
-            background-color: #6c757d;
-            cursor: not-allowed;
+        .attempts-warning {
+            color: var(--error);
+            font-weight: 500;
         }
-        .tooltip-container {
-    position: relative;
-    display: inline-block;
-    margin:auto;
-}
 
-.tooltip-content {
-    margin:auto;
-    max-width: 90%;
-}
+        @media (max-width: 992px) {
+            .main-content {
+                flex-direction: column;
+            }
 
-.tooltip-container:hover .tooltip-content {
-    visibility: visible;
-}
-                .download-button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            display: inline-block;
-            margin-top: 20px;
+            .instruction-panel, .graph-container {
+                flex: 1 1 100%;
+            }
+        }
+
+        /* Стили для графа */
+        #cy .cy-title {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        #cy .cy-inputs {
+            font-size: 16px;
+            color: #666;
+        }
+
+        #cy .cy-result {
+            font-size: 32px;
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <h1>Логический граф операций</h1>
+        </header>
 
- <div style="margin: 10px; font-size: 18px; display:flex; flex-direction:row;justify-content: center;  gap: 40px;
-    align-items: flex-start; ">
-    <h3 style = "text-align:center;">Пользователь: {{ fio }}</h3>
-<h3 style = "text-align:center;">Прогон № {{ run }}</h3>
+        <div class="user-info">
+            <div class="info-item">
+                <div class="info-label">Пользователь</div>
+                <div class="info-value">{{ fio }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Прогон №</div>
+                <div class="info-value">{{ run }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Попыток осталось</div>
+                <div class="info-value">{{ attempts_left }}</div>
+            </div>
+        </div>
 
-</div>
-<div class="tooltip-content" style="">
-        <h2>Инструкция по работе</h2>
+        <div class="main-content">
+            <div class="instruction-panel">
+                <h2 class="section-title">Инструкция</h2>
+                <div class="instruction-content">
+                    <div class="instruction-item">
+                        <h3>1. Общая структура графа</h3>
+                        <p>Граф состоит из {{ max_level|add:"1" }} уровней. Первый уровень содержит входные числа, последующие - операции, последний уровень - результаты для проверки.</p>
+                    </div>
+                    <div class="instruction-item">
+                        <h3>2. Формат данных</h3>
+                        <p>Каждая вершина содержит:<br>
+                        - Операцию<br>
+                        - Номера входных вершин<br>
+                        - Результат в формате "число_основание"</p>
+                    </div>
+                    <div class="instruction-item">
+                        <h3>3. Ввод ответов</h3>
+                        <p>Введите {{ max_level_nodes }} значений в формате "число_основание", разделенных пробелами.</p>
+                    </div>
+                    <div class="instruction-item">
+                        <h3>4. Проверка</h3>
+                        <p>У вас есть {{ attempts_left }} попыток. После проверки можно скачать отчет и протокол работы.</p>
+                    </div>
+                </div>
+            </div>
 
-    <h3>1. Общая структура графа</h3>
-Всего n уровней графа.
-1 уровень:Вершины содержат начальные числа, записанные в формате число_основание числовой системы.
-2 - (n-1) уровень: Вершины представляют собой операции над входными числами.
-n уровень:Выходной уровень модели, на котором необходимо сформировать ответ.
+            <div class="graph-container">
+                <h2 class="section-title">Визуализация графа</h2>
+                <div id="cy-container">
+                    <div id="cy"></div>
+                </div>
 
+                <div class="form-container">
+                    <form method="post" action="{% url 'verify' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="fio" value="{{ fio }}">
+                        <input type="hidden" name="run_number" value="{{ run_number }}">
+                        <input type="hidden" name="attempts_left" value="{{ attempts_left }}">
+                        <input type="hidden" name="table_data" value="{{ table_data|safe }}">
+                        <input type="hidden" name="max_level" value="{{ max_level }}">
+                        <input type="hidden" name="enriched_table" value='{{ enriched_table }}'>
 
-    <h3> Формат текстовой информации в вершинах графа</h3>
-Каждая вершина содержит три строки:
-Первая строка — знак операции.
-Вторая строка — номера вершин предыдущего уровня (например: (0,2,3,5), нумерация начинается с 0).
-Третья строка — ответ в формате число_основание числовой системы.
+                        <div class="form-group">
+                            <label for="answers">Введите ответы для {{ max_level_nodes }} вершин последнего уровня:</label>
+                            <input type="text"
+                                   name="answers"
+                                   id="answers"
+                                   required
+                                   pattern="{{ pattern }}"
+                                   placeholder="Пример: 101_2 7_10 15_16"
+                                   title="Введите {{ max_level_nodes }} значений в формате число_основание через пробел">
+                        </div>
+                        <div class="form-group">
+                            <label for="comment">Введите ответы:</label>
+                                <input
+                                    type="text"
+                                    id="comment"
+                                    name="comment"
+                                    placeholder="Введите комментарий">
+                        </div>
+                        <button type="submit" class="btn btn-block">Проверить ответ</button>
 
-    <h3>3. Задача пользователя</h3>
-    <p>Вам необходимо дать столько ответов в формате число_основание, сколько имеется вершин на последнем уровне графа, разделяя их знаком ";".</p>
+                        <div class="attempts-counter">
+                            Осталось попыток: <span class="{% if attempts_left == 1 %}attempts-warning{% endif %}">{{ attempts_left }}</span>
+                        </div>
+                    </form>
 
-    <h3>4. Проверка ответа</h3>
-
-Доступно 3 попытки для проверки вашего ответа.
-После каждой попытки можно скачать результат тестирования.
-После финальной попытки можно:
-
-Скачать протокол работы эталонной модели алгоритма.
-Просмотреть верификатор, который сравнивает результаты работы текущей модели и эталонной программы алгоритма.
-
-
-
-        </p>
+                    <div class="download-buttons">
+                        <form method="post" action="{% url 'verification' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="fio" value="{{ fio }}">
+                            <input type="hidden" name="elements" value='{{ elements|escapejs }}'>
+                            <input type="hidden" name="level_labels" value='{{ level_labels|escapejs }}'>
+                            <input type="hidden" name="table_data" value="{{ table_data|safe }}">
+                            <input type="hidden" name="enriched_table" value='{{ enriched_table|escapejs }}'>
+                            <input type="hidden" name="max_level" value="{{ max_level }}">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class = "vished"><h2 style = "text-align:center;">Визуализация графа</h2></div>
-    <div id="cy-container">
-        <div id="cy"></div>
-    </div>
-    <div class = "content-container">
-        <div class="scrip"><script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const cy = cytoscape({
-            container: document.getElementById('cy'),
-            elements: {{ elements|safe }},
-            style: [
-                {
-                    selector: 'node',
-                    style: {
-                        'label': function(ele) {
-                            const id = ele.data('id');
-                            const level = parseInt(id.split('_')[0].replace('Y', ''));
-                            const label = ele.data('label') || '';
-                            const dataLabel = ele.data('dataLabel') || '';
-                            const inputs = ele.data('inputs') || [];
-                            const base = ele.data('base') || '';
 
-                            // Формируем строку с индексами входов (меньший размер шрифта)
-                            const inputIndices = `(${inputs.join(',')})`;
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: {{ elements|safe }},
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'label': function(ele) {
+                                const id = ele.data('id');
+                                const level = parseInt(id.split('_')[0].replace('Y', ''));
+                                const label = ele.data('label') || '';
+                                const dataLabel = ele.data('dataLabel') || '';
+                                const inputs = ele.data('inputs') || [];
+                                const base = ele.data('base') || '';
 
-                            // Для первого уровня (входные данные)
-                            if (level === 0) {
-                                const match = dataLabel.match(/\[(.*?)\]/);
-                                const value = match ? match[1] : dataLabel;
-                                return `${value}_${base}`;
-                            }
-                            // Для последнего уровня
-                            else if (level === {% if max_level %}{{ max_level }}{% else %}0{% endif %}) {
-                                const operation = label;
-                                return `${operation}\n${inputIndices}\n?_${base}`;
-                            }
-                            // Для промежуточных уровней
-                            else {
-                                const operation = label;
-                                const result = dataLabel.split('_')[0] || '';
-                                return `${operation}\n${inputIndices}\n${result}_${base}`;
-                            }
-                        },
-                        'text-valign': 'center',
-                        'text-halign': 'center',
-                        'background-color': function(ele) {
-                            const id = ele.data('id');
-                            const level = parseInt(id.split('_')[0].replace('Y', ''));
-                            if (level === 0) return '#e0f7ff';
-                            if (level === {% if max_level %}{{ max_level }}{% else %}0{% endif %}) return '#ffebee';
-                            return '#e8f5e9';
-                        },
-                        'border-width': 2,
-                        'border-color': '#222',
-                        'width': 120,
-                        'height': 120,
-                        'font-size': 18,
-                        'color': '#000',
-                        'text-wrap': 'wrap',
-                        'font-weight': 'bold',
-                        'text-margin-y': -5
+                                const inputIndices = `(${inputs.join(',')})`;
+
+                                if (level === 0) {
+                                    const match = dataLabel.match(/\[(.*?)\]/);
+                                    const value = match ? match[1] : dataLabel;
+                                    return `${value}_${base}`;
+                                }
+                                else if (level === {{ max_level }}) {
+                                    const operation = label;
+                                    return `${operation}\n${inputIndices}\n?_${base}`;
+                                }
+                                else {
+                                    const operation = label;
+                                    const result = dataLabel.split('_')[0] || '';
+                                    return `${operation}\n${inputIndices}\n${result}_${base}`;
+                                }
+                            },
+                            'text-valign': 'center',
+                            'text-halign': 'center',
+                            'background-color': function(ele) {
+                                const level = parseInt(ele.data('id').split('_')[0].replace('Y', ''));
+                                if (level === 0) return '#e0f7ff';
+                                if (level === {{ max_level }}) return '#ffebee';
+                                return '#e8f5e9';
+                            },
+                            'border-width': 2,
+                            'border-color': '#222',
+                            'width': 120,
+                            'height': 120,
+                            'font-size': 18,
+                            'color': '#000',
+                            'text-wrap': 'wrap',
+                            'font-weight': 'bold',
+                            'text-margin-y': -5
+                        }
+                    },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'width': 2,
+                            'line-color': '#888',
+                            'target-arrow-color': '#888',
+                            'target-arrow-shape': 'triangle',
+                            'curve-style': 'bezier'
+                        }
                     }
+                ],
+                layout: {
+                    name: 'preset',
+                    fit: true,
+                    padding: 30,
+                    animate: true
                 },
-                {
-                    selector: 'edge',
-                    style: {
-                        'width': 2,
-                        'line-color': '#888',
-                        'target-arrow-color': '#888',
-                        'target-arrow-shape': 'triangle',
-                        'curve-style': 'bezier'
-                    }
-                }
-            ],
-            layout: {
-                name: 'preset',
-                fit: true,
-                padding: 30,
-                animate: true
-            },
-            wheelSensitivity: 0.05
-        });
-
-        // Остальной код без изменений...
-        const cyContainer = document.getElementById('cy-container');
-
-        // Находим максимальный уровень
-        let maxLevel = 0;
-        cy.nodes().forEach((node) => {
-            const level = parseInt(node.data('id').split('_')[0].replace('Y', ''));
-            if (level > maxLevel) maxLevel = level;
-        });
-
-        const levels = {};
-        cy.nodes().forEach((node) => {
-            const level = node.data('id').split('_')[0];
-            if (!levels[level]) levels[level] = [];
-            levels[level].push(node);
-        });
-
-        const levelLabels = {};
-        Object.keys(levels).sort().forEach((level, idx) => {
-            const firstNode = levels[level][0];
-            const graphPosition = firstNode.position();
-
-            const levelDiv = document.createElement('div');
-            levelDiv.className = 'level-label';
-            levelDiv.style.position = 'absolute';
-            levelDiv.style.left = '0px';
-            levelDiv.style.top = '0px';
-            levelDiv.style.fontSize = '16px';
-            levelDiv.style.fontWeight = 'bold';
-            levelDiv.style.color = 'black';
-            levelDiv.innerText = `Уровень ${idx}`;
-            cyContainer.appendChild(levelDiv);
-
-            levelLabels[level] = { element: levelDiv, graphPosition };
-        });
-
-        const updateLevelPositions = () => {
-            const zoom = cy.zoom();
-            const pan = cy.pan();
-
-            Object.keys(levelLabels).forEach((level) => {
-                const { element, graphPosition } = levelLabels[level];
-                const screenX = graphPosition.x * zoom + pan.x;
-                const screenY = graphPosition.y * zoom + pan.y;
-
-                const labelOffsetX = -280;
-                const labelOffsetY = -10;
-
-                element.style.left = `${screenX + labelOffsetX}px`;
-                element.style.top = `${screenY + labelOffsetY}px`;
+                wheelSensitivity: 0.05
             });
-        };
 
-        cy.on('zoom pan', () => {
+            // Остальной код для управления графом...
+            const cyContainer = document.getElementById('cy-container');
+            let maxLevel = 0;
+            cy.nodes().forEach((node) => {
+                const level = parseInt(node.data('id').split('_')[0].replace('Y', ''));
+                if (level > maxLevel) maxLevel = level;
+            });
+
+            const levels = {};
+            cy.nodes().forEach((node) => {
+                const level = node.data('id').split('_')[0];
+                if (!levels[level]) levels[level] = [];
+                levels[level].push(node);
+            });
+
+            const levelLabels = {};
+            Object.keys(levels).sort().forEach((level, idx) => {
+                const firstNode = levels[level][0];
+                const graphPosition = firstNode.position();
+
+                const levelDiv = document.createElement('div');
+                levelDiv.className = 'level-label';
+                levelDiv.style.position = 'absolute';
+                levelDiv.innerText = `Уровень ${idx}`;
+                cyContainer.appendChild(levelDiv);
+
+                levelLabels[level] = { element: levelDiv, graphPosition };
+            });
+
+            const updateLevelPositions = () => {
+                const zoom = cy.zoom();
+                const pan = cy.pan();
+
+                Object.keys(levelLabels).forEach((level) => {
+                    const { element, graphPosition } = levelLabels[level];
+                    const screenX = graphPosition.x * zoom + pan.x;
+                    const screenY = graphPosition.y * zoom + pan.y;
+
+                    element.style.left = `${screenX - 140}px`;
+                    element.style.top = `${screenY - 60}px`;
+                });
+            };
+
+            cy.on('zoom pan', updateLevelPositions);
             updateLevelPositions();
+            cy.autoungrabify(true);
         });
 
-        updateLevelPositions();
-        cy.autoungrabify(true);
-    });
+        function downloadFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
 
-</script>
-</div>
+        function downloadReport() {
+            fetch("{% url 'get_report_content' %}")
+                .then(response => response.json())
+                .then(data => {
+                    downloadFile(data.content, data.filename);
+                })
+                .catch(error => console.error('Error:', error));
+        }
 
+        function downloadProtocol() {
+            fetch("{% url 'get_protocol_content' %}")
+                .then(response => response.json())
+                .then(data => {
+                    downloadFile(data.content, data.filename);
+                })
+                .catch(error => console.error('Error:', error));
+        }
 
-</div>
-
+        // Показываем кнопки после первой попытки
+        if ({{ attempts_left }} < 3) {
+            document.querySelector('.download-btn[onclick="downloadReport()"]').style.display = 'inline-block';
+        }
+        if ({{ attempts_left }} === 0) {
+            document.querySelector('.download-btn[onclick="downloadProtocol()"]').style.display = 'inline-block';
+            document.querySelector('.verification-btn').style.display = 'inline-block';
+        }
+    </script>
 </body>
-<div style="border: 1px solid #ddd; border-radius: 6px; padding: 16px; margin: auto; margin-top: 10px; max-width: 68%; background-color: #f8f9fa;">
-    <form method="post" action="{% url 'verify' %}">
-    {% csrf_token %}
-    <input type="hidden" name="fio" value="{{ fio }}">
-    <input type="hidden" name="run_number" value="{{ run_number }}">
-    <input type="hidden" name="attempts_left" value="{{ attempts_left }}">
-    <input type="hidden" name="table_data" value="{{ table_data|safe }}">
-    <input type="hidden" name="max_level" value="{{ max_level }}">
-    <input type="hidden" name="enriched_table" value='{{ enriched_table }}'>
-
-    <div><label for="answers">Введите ответы:</label>
-    <input
-  type="text"
-  name="answers"
-  id="answers"
-  required
-  pattern="{{ pattern }}"
-  title="Введите {{ max_level_nodes }} значений в формате число_основание через пробел"
-  placeholder="Например: 1_2 3_10{% if max_level_nodes > 2 %} ...{% endif %}"
-></div>
-    <div><label for="comment">Введите ответы:</label>
-        <input
-            type="text"
-            id="comment"
-            name="comment"
-            placeholder="Введите комментарий"
-            >
-    <button type="submit">Проверить</button>
-    </div>
-</form>
-</div>
-
-<!-- Кнопки скачивания (изначально скрыты) -->
-<a class="download-button" onclick="downloadReport()" style="display: none;">Скачать отчет</a>
-<a class="download-button" onclick="downloadProtocol()" style="display: none;">Скачать протокол</a>
-<a class="download-button" id="verification-btn" style="display: none;">
-    <form method="post" action="{% url 'verification' %}">
-        {% csrf_token %}
-         <input type="hidden" name="fio" value="{{ fio }}">
-
-    <input type="hidden" name="elements" value='{{ elements|escapejs }}'>
-    <input type="hidden" name="level_labels" value='{{ level_labels|escapejs }}'>
-    <input type="hidden" name="table_data" value="{{ table_data|safe }}">
-    <input type="hidden" name="enriched_table" value='{{ enriched_table|escapejs }}'>
-    <input type="hidden" name="max_level" value="{{ max_level }}">
-        <button type="submit">Верификация</button>
-    </form>
-</a>
-
-<script>
-// Функции для скачивания файлов (оставляем без изменений)
-function downloadFile(content, filename) {
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-function downloadReport() {
-    fetch("{% url 'get_report_content' %}")
-        .then(response => response.json())
-        .then(data => {
-            downloadFile(data.content, data.filename);
-        })
-        .catch(error => console.error('Error:', error));
-}
-
-function downloadProtocol() {
-    fetch("{% url 'get_protocol_content' %}")
-        .then(response => response.json())
-        .then(data => {
-            downloadFile(data.content, data.filename);
-        })
-        .catch(error => console.error('Error:', error));
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const button = document.getElementById('attempt-button');
-    const reportBtn = document.querySelector('.download-button[onclick="downloadReport()"]');
-    const protocolBtn = document.querySelector('.download-button[onclick="downloadProtocol()"]');
-    const verificationBtn = document.getElementById('verification-btn');
-    const attemptsLeftInput = document.getElementById('attempts-left');
-
-    // Инициализация из скрытого поля
-    let attemptsLeft = parseInt(attemptsLeftInput.value);
-    const maxAttempts = parseInt(button.dataset.maxAttempts);
-
-    // Обновляем состояние кнопки при загрузке
-    updateButtonState();
-
-    button.addEventListener('click', function() {
-        if (attemptsLeft > 0) {
-            attemptsLeft--;
-            attemptsLeftInput.value = attemptsLeft; // Обновляем скрытое поле
-
-            // Можно добавить AJAX-запрос для сохранения attempts_left на сервере
-            updateAttemptsOnServer(attemptsLeft);
-
-            updateButtonState();
-        }
-    });
-
-    function updateAttemptsOnServer(newAttemptsLeft) {
-        fetch(`?attempts=${newAttemptsLeft}`, {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-            }
-        }).catch(error => console.error('Error:', error));
-    }
-
-    function updateButtonState() {
-        if (attemptsLeft <= 0) {
-            button.value = "Проверка недоступна - попытки исчерпаны";
-            button.disabled = true;
-            button.style.backgroundColor = '#6c757d';
-
-            // Показываем дополнительные кнопки
-            protocolBtn.style.display = 'inline-block';
-            verificationBtn.style.display = 'inline-block';
-        } else if (attemptsLeft === 1) {
-            button.value = 'Проверить последнюю попытку';
-        } else {
-            button.value = `Проверить (осталось ${attemptsLeft} попыток)`;
-        }
-
-        // Показываем кнопку отчета после первой использованной попытки
-        if (attemptsLeft < maxAttempts) {
-            reportBtn.style.display = 'inline-block';
-        }
-    }
-});
-</script>
-    </div>
-<!--</form>-->
 </html>
