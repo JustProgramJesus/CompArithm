@@ -300,14 +300,23 @@
                 </div>
             </div>
 
-            # Сюда добавить систему отображения оценки.
-
+            {% if final_score is not None %}
+                <div class="result-card {% if final_score == 1 %}correct{% else %}incorrect{% endif %}">
+                    <div class="result-icon">
+                        {% if final_score == 1 %}🎓{% else %}🛑{% endif %}
+                    </div>
+                    <div class="result-text">
+                        Итоговая оценка: <strong>{{ final_score }}</strong>
+                    </div>
+                </div>
+            {% endif %}
 
             {% if run_number|add:'0' < 3 %}
             <form method="post" action="{% url 'start' %}">
                 {% csrf_token %}
                 <input type="hidden" name="fio" value="{{ fio }}">
                 <input type="hidden" name="run_number" value="{{ run_number|add:'1' }}">
+                <input type="hidden" name="score_counter" value="{{ score_counter }}">
                 <button type="submit" class="btn btn-block">Следующий прогон</button>
             </form>
         {% else %}

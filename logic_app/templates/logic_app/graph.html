@@ -332,6 +332,7 @@
                         <input type="hidden" name="table_data" value="{{ table_data|safe }}">
                         <input type="hidden" name="max_level" value="{{ max_level }}">
                         <input type="hidden" name="enriched_table" value='{{ enriched_table }}'>
+                        <input type="hidden" name="score_counter" value="{{ score_counter|default:'0' }}">
 
                         <div class="form-group">
                             <label for="answers">Введите ответы для {{ max_level_nodes }} вершин последнего уровня:</label>

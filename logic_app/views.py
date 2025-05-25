@@ -1,6 +1,4 @@
 import itertools
-from lib2to3.fixer_util import in_special_context
-
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.http import urlencode
@@ -60,6 +58,7 @@ def graph_view(request):
     elements_json = request.GET.get("elements", "[]")
     level_labels_json = request.GET.get("level_labels", "[]")
     table_data_json = request.GET.get("table_data", "[]")
+    score_counter = request.GET.get("score_counter", "0")
     try:
         elements = json.loads(elements_json)
         level_labels = json.loads(level_labels_json)
@@ -80,6 +79,7 @@ def graph_view(request):
         "fio": fio,
         "run": run_number_save,
         "run_number": run_number,
+        "score_counter": score_counter,
         "max_level": max_level,
         "attempts_left": attempts_left,
         "enriched_rows": enriched_table,
@@ -93,6 +93,7 @@ def start_view(request):
     if request.method == "POST":
         fio = request.POST.get("fio", "").strip()
         run_number = int(request.POST.get("run_number").strip())
+        score_counter = request.POST.get("score_counter", "0")
         if run_number >= 3:
             run_number_save = run_number
             run_number = 3
@@ -181,6 +182,7 @@ def start_view(request):
             "run": run_number_save,
             "run_number": run_number,
             "elements": json.dumps(elements),
+            "score_counter": score_counter,
             "level_labels": json.dumps(level_labels),
             "table_data": json.dumps(table_data),
             "enriched_table": json.dumps(enriched_table),
@@ -205,6 +207,7 @@ def verify_view(request):
         enriched_table = request.POST.get("enriched_table", "")
         run_number_save = request.POST.get("run", "")
         comment_user = request.POST.get("comment", "")
+
         # Проверяем enriched_table
         if isinstance(enriched_table, str):
             try:
@@ -227,7 +230,13 @@ def verify_view(request):
         correct_answer_string = " ".join(verifier_results)
 
         # Сравниваем ответы пользователя с эталонными
+        score_counter = int(request.POST.get("score_counter", 0))
         is_correct = user_answers == correct_answer_string
+        score_counter += int(is_correct)
+
+        final_score = None
+        if int(run_number) >= 3:
+            final_score = 1 if score_counter > 0 else 0
 
         table_data = []
         if isinstance(enriched_table, dict):
@@ -247,6 +256,8 @@ def verify_view(request):
             "run": run_number_save,
             "run_number": run_number,
             "attempts_left": attempts_left,
+            "score_counter": score_counter,
+            "final_score": final_score,
             "is_correct": is_correct,
             "comment": "Ответы совпадают!" if is_correct else "Ответы не совпадают.",
             "comment_user": comment_user,
@@ -325,6 +336,7 @@ def get_protocol_content(request):
             WIDTH_RESULT = 20
             WIDTH_OP = 25
             for level_num in level_keys:
+
                 rows = enriched_table[str(level_num)]
                 lines.append(f"УРОВЕНЬ {level_num}:")
 
