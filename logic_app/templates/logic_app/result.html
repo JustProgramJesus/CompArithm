@@ -82,7 +82,16 @@
             {% endif %}
         </div>
 
-        <a href="{% url 'graph' %}" class="button">Вернуться к графу</a>
+        {% if run_number|add:'0' < 3 %}
+            <form method="post" action="{% url 'start' %}">
+                {% csrf_token %}
+                <input type="hidden" name="fio" value="{{ fio }}">
+                <input type="hidden" name="run_number" value="{{ run_number|add:'1' }}">
+                <button type="submit" class="button">Следующий прогон</button>
+            </form>
+        {% else %}
+            <a href="{% url 'start' %}" class="button">Вернуться на стартовую</a>
+        {% endif %}
     </div>
 </body>
 <h2>Верификация узлов модели</h2>

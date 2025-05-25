@@ -96,9 +96,9 @@ def start_view(request):
         if run_number >= 3:
             run_number_save = run_number
             run_number = 3
-
         else:
             run_number_save = run_number
+
         errors = {}
         if not fio.replace(" ", "").isalpha():
             errors["fio"] = "ФИО должно содержать только буквы и пробелы"
@@ -108,6 +108,8 @@ def start_view(request):
 
         # Генерируем граф
         levels = generate_logic_graph()
+        if not levels or not any(levels):
+            return render(request, "logic_app/start.html", {"message": "Ошибка генерации графа. Попробуйте ещё раз."})
         elements = []
         level_labels = []
         table_data = []
