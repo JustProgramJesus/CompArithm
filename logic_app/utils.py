@@ -37,38 +37,32 @@ def int_to_base(n, base):
 def apply_operation(op_code, inputs_bin):
     length = len(inputs_bin[0])
     result = []
-
     for i in range(length):
-        bits = [int(x[i]) for x in inputs_bin]
+        try:
+            bits = [int(x[i]) for x in inputs_bin]
+        except IndexError:
+            return '0' * length
 
-        # Унарные операции
-        if OPERATIONS[op_code] in ["NOT_X", "X", "Y", "NOT_Y"]:
-            a = bits[0]
-            b = bits[1] if len(bits) > 1 else a  # нужно для "Y" и "NOT_Y"
+        a = bits[0]
+        b = bits[1] if len(bits) > 1 else a  # <--- вот ключ: если второго нет, используем a
 
-            match OPERATIONS[op_code]:
-                case "NOT_X": current = int(not a)
-                case "X": current = a
-                case "Y": current = b
-                case "NOT_Y": current = int(not b)
-        else:
-            current = bits[0]
-            for b in bits[1:]:
-                a = current
-                match OPERATIONS[op_code]:
-                    case "AND": current = int(a and b)
-                    case "OR": current = int(a or b)
-                    case "XOR": current = int((a and not b) or (not a and b))
-                    case "EQUIV": current = int(a == b)
-                    case "IMPLIES": current = int((not a) or b)
-                    case "NAND": current = int(not (a and b))
-                    case "NOR": current = int(not (a or b))
-                    case "NOT_IMPLIES": current = int(not ((not a) or b))
-                    case "LEFT": current = int((not b) or a)
-                    case "NOTLEFT": current = int(not ((not b) or a))
-                    case _ : current = 0  # fallback
-
-        result.append(str(current))
+        match OPERATIONS[op_code]:
+            case "AND": res = int(a and b)
+            case "OR": res = int(a or b)
+            case "XOR": res = int((a & (not b)) | ((not a) & b))
+            case "EQUIV": res = int((a | (not b)) & ((not a) | b))
+            case "IMPLIES": res = int((not a) or b)
+            case "NAND": res = int((not a) or (not b))
+            case "NOR": res = int((not a) and (not b))
+            case "NOT_IMPLIES": res = int(not ((not a) or b))
+            case "NOT_X": res = int(not a)
+            case "X": res = int(a)
+            case "Y": res = int(b)
+            case "LEFT": res = int((not b) or a)
+            case "NOT_LEFT": res = int(not ((not b) or a))
+            case "NOT_Y": res = int(not b)
+            case _: res = 0
+        result.append(str(res))
 
     return ''.join(result)
 
